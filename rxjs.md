@@ -115,7 +115,6 @@ rxjs提供了一套非常丰富的操作符来帮助用户控制数据或事
         }
     });
 
-
 使用rxjs：
 
     var button = button.querySelector('button');
@@ -516,7 +515,7 @@ Subscription 代表了正在执行的上下文，它拥有一个可以取消 Ob
 
 ## 观察者——Observer
 
------------------------
+----
 
 观察者实际就是可观察序列——Observable的消费者。Observer 会设置一些回调函数来对应 Observable 的各个通知类型（next/error/complete)，从这些通知中接收值，然后对它们进行处理。
 
@@ -582,7 +581,7 @@ Subscription 可以被组合在一起，这样只要调用一次 unsubscribe 方
     subscription.add(childSubscription);
 
     setTimeout(() => {
-        // 取消上面的两次订阅 
+        // 取消上面的两次订阅
         subscription.unsubscribe();
     },1000);
 
@@ -669,7 +668,7 @@ Subject 是 Observable 的一种特殊类型，它允许把值同时传播给�
 
 * <font face="仿宋">_多播的 Observable 会使用 Subject 作为钩子来实现将同一个 Observable 的执行传递给多个观察者。_</font>
 
-这就是那些多播的操作符实现时的真实情况：观察者订阅底层的一个 Subject，使用这个 Subject 来订阅产生源数据的 Observable。 
+这就是那些多播的操作符实现时的真实情况：观察者订阅底层的一个 Subject，使用这个 Subject 来订阅产生源数据的 Observable。
 
 下面这个例子和之前那个使用 subject 来订阅 Observable 的例子非常类似：
 
@@ -896,7 +895,8 @@ ReplaySubject 和 BehaviorSubject 很类似，它们都可以把过去的值发�
     ...
 
 ### AsyncSubject
------------------------
+
+----
 
 它也是 Subject 的一个变种，AsyncSubject仅在流执行结后把最后一个值发送给它的订阅者。
 
@@ -969,7 +969,8 @@ AsyncSubject 的行为与last操作符的行为非常相似，都是在等待c
 注意：我们只是订阅了输出-——output，但这同时导致input被订阅，这称之为’操作符的链式订阅‘。
 
 ### 实例的操作符 VS 静态操作符
------------------------
+
+----
 
 通常在提到操作符时，我们指的是 Observable 实例上的操作符。假如上面例子中我们定义的操作函数 multiplyByTen 是一个操作符的话，它看起来应该是这样：
 
