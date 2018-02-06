@@ -4,26 +4,26 @@
 
 ----
 
-rxjs是一个使用观察者模式来整合异步操作和事件系统的js库，通过一系列可观测的流（observable）将它们串联起来。Observable是这个库的核心类型，此外还包括诸如Observer，Schedulers，Subjects等类型。还包括一些和数组方法类似或经过演化的操作符，用来协助处理数据。
+rxjs是一个使用观察者模式来整合异步操作和事件系统的js库，通过一系列可观测的流（observable）将它们串联起来。Observable是这个库的核心类型，此外还包括诸如Observer，Schedulers，Subjects等类型。还包括一些和数组方法类似或经过演化的操作符，用来协助处理数据。
 
 * <font face="仿宋">_可以把 rxjs 想像成一个可以发射事件的 lodash 库。_</font>
 
-响应式设计结合了观察者模式，迭代模式和基于集合的函数式编程风格，从而提供了一种处理事件序列的理想方式。
+响应式设计结合了观察者模式，迭代模式和基于集合的函数式编程风格，从而提供了一种处理事件序列的理想方式。
 
-在rxjs中用来处理异步事件的核心概念包括：
+在rxjs中用来处理异步事件的核心概念包括：
 
-* observable: 代表了未来可能会产生的一系列的值或事件的集合；
-* observer: 回调函数的集合，它知道如何去处理observable上产生的值或者事件，当然也包括异常。
+* observable: 代表了未来可能会产生的一系列的值或事件的集合；
+* observer: 回调函数的集合，它知道如何去处理observable上产生的值或者事件，当然也包括异常。
 * subscription: 代表当前正在订阅的observable，主要作用是用来取消订阅行为。
-* operators: 纯函数，以函数式的风格通过各种各样的操作符相互配合对observable上产生的数据集合进处理。
-* subject: 相当于一个事件发射器，允许将相同的值传递给多个订阅者。
-* schedulers: 协调observable上数据的发射方式。
+* operators: 纯函数，以函数式的风格通过各种各样的操作符相互配合对observable上产生的数据集合进处理。
+* subject: 相当于一个事件发射器，允许将相同的值传递给多个订阅者。
+* schedulers: 协调observable上数据的发射方式。
 
-### 示例
+### 示例
 
 ----
 
-在javascript中通常使用以下方式来注册事件：
+在javascript中通常使用以下方式来注册事件：
 
     var button = document.querySelector('button');
 
@@ -39,7 +39,7 @@ rxjs是一个使用观察者模式来整合异步操作和事件系统的js库
 
 ----
 
-使用不纯的函数时，函数可能会改变外部数据的状态，比如：
+使用不纯的函数时，函数可能会改变外部数据的状态，比如：
 
     var count = 0;
 
@@ -47,7 +47,7 @@ rxjs是一个使用观察者模式来整合异步操作和事件系统的js库
 
     button.addEventListener('click', () => console.log(`Clicked ${++count} times`));
 
-当使用rxjs时，必须把这些状态隔离出去，比如：
+当使用rxjs时，必须把这些状态隔离出去，比如：
 
     var button = document.querySelect('button');
 
@@ -55,15 +55,15 @@ rxjs是一个使用观察者模式来整合异步操作和事件系统的js库
         .scan(count => count + 1, 0)
         .subscribe(count => console.log(`Clicked ${count} times`));
 
-这里的scan操作符的行为和数组的reduce方法的行为非常类似，它提供一个初始值给迭代函数，迭代函数运行后的值将作为下一次迭代的初始值。
+这里的scan操作符的行为和数组的reduce方法的行为非常类似，它提供一个初始值给迭代函数，迭代函数运行后的值将作为下一次迭代的初始值。
 
 #### 流
 
 ----
 
-rxjs提供了一套非常丰富的操作符来帮助用户控制数据或事件如何在observable中进行流动。假如我们需要控制用户在一个按钮上每秒最多只能点击一次
+rxjs提供了一套非常丰富的操作符来帮助用户控制数据或事件如何在observable中进行流动。假如我们需要控制用户在一个按钮上每秒最多只能点击一次
 
-使用普通的javascript代码:
+使用普通的javascript代码:
 
     var count = 0;
 
@@ -89,15 +89,15 @@ rxjs提供了一套非常丰富的操作符来帮助用户控制数据或事
         .scan(count => count + 1, 0)
         .subscribe(count => console.log(`Click ${count} times`));
 
-诸如此类对流进行控制的操作符还有：filter, delay, debounceTime, take, takeUntil, distinct, distinctUntilChanged等等。
+诸如此类对流进行控制的操作符还有：filter, delay, debounceTime, take, takeUntil, distinct, distinctUntilChanged等等。
 
 #### 值
 
 ----
 
-你可以对流中的数据进行转换，当我们需要得到每一次鼠标点击时的x轴坐标时，
+你可以对流中的数据进行转换，当我们需要得到每一次鼠标点击时的x轴坐标时，
 
-使用普通的javascript代码:
+使用普通的javascript代码:
 
     var count = 0;
 
@@ -127,18 +127,18 @@ rxjs提供了一套非常丰富的操作符来帮助用户控制数据或事
 
 诸如此类可以产生新值的操作符还有：pluck，pairwise，sample等等。
 
-## 可观测序列-Observable
+## 可观测序列-Observable
 
 ----
 
-可观测序列可以推送多个值，并且它的推送方式是‘懒’的，它满足下面表格中列出的条件
+可观测序列可以推送多个值，并且它的推送方式是‘懒’的，它满足下面表格中列出的条件
 
 |          | single        | multiple     |
 | -------- |:-------------:| ------------:|
 | pull     | function      | iterator     |
 | push     | promise       | observable   |
 
-下面这个例子中的observable在被订阅时可以立即推送出1，2，3这个三个值，1秒以后推送第四的值4，然后立即结束。
+下面这个例子中的observable在被订阅时可以立即推送出1，2，3这个三个值，1秒以后推送第四的值4，然后立即结束。
 
     var observable = Rx.Observable.create(function(observer) {
         observer.next(1);
@@ -186,13 +186,13 @@ rxjs提供了一套非常丰富的操作符来帮助用户控制数据或事
 
 ----
 
-这里使用 pull 和 push 来描述值的生产者和消费者之间是如何发生联系的，它们是两种完全不同的协议。
+这里使用 pull 和 push 来描述值的生产者和消费者之间是如何发生联系的，它们是两种完全不同的协议。
 
-在pull的系统中，值的消费决定什么时间从生产者上获取数据，生产者本身并不关心数据什么时间分发给消费者。
+在pull的系统中，值的消费决定什么时间从生产者上获取数据，生产者本身并不关心数据什么时间分发给消费者。
 
-每一个javascript函数都可以看作一个 pull 类型的系统。函数可以产生值，但这是通过调用者主动调用函数，函数运行产生出值返回给调用者的方式进行的，所以可以理解为调用者主动去函数上拉取了一值。
+每一个javascript函数都可以看作一个 pull 类型的系统。函数可以产生值，但这是通过调用者主动调用函数，函数运行产生出值返回给调用者的方式进行的，所以可以理解为调用者主动去函数上拉取了一值。
 
-ES2015中介绍另外两种 pull 类型的系统，generator函数 和 iterator。对于它们来讲，遍历器对象的 next 方法可以视作值的消费者，通过iterator.next()可以获取到多个值。
+ES2015中介绍另外两种 pull 类型的系统，generator函数 和 iterator。对于它们来讲，遍历器对象的 next 方法可以视作值的消费者，通过iterator.next()可以获取到多个值。
 
 |          | Producer               | Consumer           |
 |----------|:----------------------:| ------------------:|
