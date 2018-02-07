@@ -898,7 +898,7 @@ ReplaySubject 和 BehaviorSubject 很类似，它们都可以把过去的值发�
 
 ----
 
-它也是 Subject 的一个变种，AsyncSubject仅在流执行结后把最后一个值发送给它的订阅者。
+它也是 Subject 的一个变种，AsyncSubject仅在流执行结束后把最后一个值发送给它的订阅者。
 
     var subject = new Rx.AsyncSubject();
 
@@ -923,7 +923,23 @@ ReplaySubject 和 BehaviorSubject 很类似，它们都可以把过去的值发�
     observerA: 5
     observerB: 5
 
-AsyncSubject 的行为与last操作符的行为非常相似，都是在等待complete执行再发送一个值。
+AsyncSubject 的行为与last操作符的行为非常相似，都是在等待完成后再发送一个值。你应该还记得之前提到的当 Observable 发出complete通知或error通知后就不能再发送值，AsyncSubject显明违背了这个原则，其实不然，我们可以看一下它的源码：
+
+    constructor() {
+        super(...arguments);
+        this.value = null;
+        this.hasNext = false;
+        this.hasCompleted = false;
+    }
+    complete() {
+        this.hasCompleted = true;
+        if (this.hasNext) {
+            super.next(this.value);
+        }
+        super.complete();
+    }
+
+这里只摘录出了AsyncSubject的构造函数和它的complete方法，首先AsyncSubject是继承自Subject的，所以这里的super类就是Subject，那么就很明显了，在AsyncSubject实例上调用complete方法时并没有违背之前提到的原则，依然是先发出了Next通知，最后才发出Complete通知。
 
 ## 操作符
 
