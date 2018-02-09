@@ -923,7 +923,7 @@ ReplaySubject 和 BehaviorSubject 很类似，它们都可以把过去的值发�
     observerA: 5
     observerB: 5
 
-AsyncSubject 的行为与last操作符的行为非常相似，都是在等待完成后再发送一个值。你应该还记得之前提到的当 Observable 发出complete通知或error通知后就不能再发送值，AsyncSubject显明违背了这个原则，其实不然，我们可以看一下它的源码：
+AsyncSubject 的行为与last操作符的行为非常相似，都是在等待完成后再发送一个值。你应该还记得之前提到的当 Observable 发出Complete通知或Error通知后就不能再发送值，AsyncSubject看起来违背了这个原则，其实不然，我们可以看一下它的源码：
 
     constructor() {
         super(...arguments);
