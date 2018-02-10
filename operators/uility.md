@@ -40,6 +40,44 @@ Observable 会在发出值之前执行副作用的输入流镜像。
 
 ## delay
 
+----
+实例方法
+
+指定一个延迟时间，当输入流有上值到达时，输出流将延迟发射这个值，也可以指定一个日期对象，在到达此日期对象指定的值时发射值。
+
+* <font face="仿宋">_以指定的延迟时间发送值。_</font>
+
+    --------a------------b------------|->
+
+                delay
+
+    --------------a------------b------|>
+
+如果此操作符的参数是一个数字，将被当成一个毫秒数，在输入流上的值到达时，输出流将延迟毫秒数指定的时间发送值，也就是说输出流发射值时最低要保持这个延迟时间。
+
+如果提供的参数是一个日期对象，这个流将会在到达这个日期时才开始发射值，这个日期之前在输入流上产生的值不会被发射。
+
+参数
+
+| Name      | Type           | Attribute | Description                                  |
+| --------- | :------------: | :-------: | -------------------------------------------: |
+| delay     | number 或 Date |           | 延迟发射值的时间间隔或者开始发射值的日期对象 |
+| scheduler | Scheduler      | 可选      | 有来提供时间概念的调度器                     |
+
+返回值
+
+Observable 以指定是延迟时间或日期规则发送值。
+
+示例
+
+    Rx.Observable.fromEvent(document,'click')
+        .delay(2000)
+        .subscribe(v => console.log(v));
+----
+    Rx.Observable.fromEvent(document,'click')
+        .delay(new Date(2018-05-01))
+        .subscribe(v => console.log(v));
+
 ## delayWhen
 
 ## dematerialize
