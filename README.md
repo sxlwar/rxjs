@@ -170,6 +170,8 @@ rxjs提供了一套非常丰富的操作符来帮助用户控制数据或事件�
         complete: () => console.log('done'),
     });
 
+    observable.subscribe(v => console.log('......'));
+
     console.log('just after subscribe);
 
 这段代码执行后将会得到如下结果：
@@ -199,7 +201,7 @@ ES2015中介绍另外两种 pull 类型的系统，generator函数 和 iterator�
 | pull | 被动：当被调用时产生值    | 主动：决定何时发起调用 |
 | push | 主动：按自身的设置产生值 | 被动：响应接收到的值   |
 
-在push的系统中，生产者决定什么时候发送值给消费者，消费者并知道什么时候可以接收到值。
+在push的系统中，生产者决定什么时候发送值给消费者，消费者并不知道什么时候可以接收到值。
 
 ES6中的 promise 就是一个非常典型的 push 系统，promise 将 resolve 的结果传递给注册在它内部的回调函数，这与普通的函数有很大的不同，回调函数何时可以接收到数据完全取决于 promise 什么时间向它传递数据。
 

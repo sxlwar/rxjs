@@ -2,6 +2,44 @@
 
 ## combineAll
 
+----
+静态方法
+
+将高阶流转换成一阶流。当输入流完成后，内部使用combineLatest把内部流转化成输出流。
+
+* <font face="仿宋">_使用combineLatest将高阶流打平成低阶流。_</font>
+
+    -------------------------------------|-------------------------------->
+        \          \---1---2--|->         \---1---2--|->
+         \--a--b-|->                      \--a--b--|->
+
+                combineAll
+
+    -------------------------------------|-a1-b1-b2-|->
+
+从一个高阶流上收集内部流，当高阶流完成后，开始订阅所有的内部流，使用combineLatest的方式把所有值合并到输出流上。
+
+    - 每当内部流发出值时，输出流都会发出值。
+    - 输出流上发出的值取决于是否提供了聚合函数：
+        - 提供聚合函数时：聚合函数按次序接收每个内部流上的最新值，把运行的结果传递给输出流。
+        - 未提供聚合函数时：把各个内部流的最新值按次序以数组的形式传递给输出流。
+
+| Name    | Type     | Attribute | Description                                                                  |
+| ------- | :------: | :-------: | ---------------------------------------------------------------------------: |
+| project | function | 可选      | 聚合函数，可以按次序接收各个内部流的最新值，函数运行后的结果将传递给输出流。 |
+
+返回值
+
+Observable 输出各内部流的值聚合后的结果的流。
+
+示例
+
+    Rx.Observable.fromEvent(document, 'click')
+        .map(event => Rx.Observable.interval(Math.random()*200).take(3))
+        .take(2)
+        .combineAll()
+        .subscribe(x => console.log(x));
+
 ## combineLatest
 
 ----
@@ -89,7 +127,67 @@ Observable 按顺序排列的所有输入流的值构成的流。
 
 ## concatAll
 
+----
+实例方法
+
+通过把内部流串联起来的方式把高阶流打平成一阶流。
+
+* <font face="仿宋">_把内部流按次序连接起来作为输出流。_</font>
+
+    -----------------------------------|----------------------------|-->
+         \a----b---|->   \-1--2--|->
+
+                    concatAll
+
+    -----------------------------------a----b---------1--2--|->
+
+连接所有从输入流上发出的内部流。这个操作符会依次监听每一个内部流，也就是说只有当一个内部流发出完成通知后它才会继而监听下一个，然后将监听得到的所有值依次发送给输出流。
+
+注意：如果输入流迅速且无止境的发出内部流，而内部流发出结束通知的时间比输入流慢，那么在不设置缓冲区时可能会面临内存问题。
+
+concatAll 和 mergeAll使用并发参数为1时的行为是相同的。
+
+返回值
+
+Observable 依次发出所有内部流上的值的流。
+
+示例
+
+    Rx.Observable.fromEvent(document, 'click')
+        .map(event => Rx.Observable.interval(1000).take(4))
+        .concatAll()
+        .subscribe(v => console.log(v));
+
 ## exhaust
+
+----
+实例方法
+
+将高阶流打平成一阶流，如果在一个内部流完成之前又有一个新内部流开始发射值，那么新的内部流将被忽略。
+
+* <font face="仿宋">_当前的内部流正在发射值时忽略掉新产生的内部流。_</font>
+
+    -------------------------------------------------|-->
+            \      \                  \--1---2--3--4-|->
+             \      \--e---f---g---h--i-|->
+              \---a----b----c----d-|->
+
+                exhaust
+
+    --------a----b----c----d-------------1---2--3--4-|->
+
+此操作符将会订阅一个高阶流，当高阶流发出内部流时输出流开始订阅内部流，如果在订阅一个内部流期间又一个新的内部流到达而正在订阅的内部流又没有结束，这个新流将会被忽略。只有当前订阅的内部流完成后才会开始订阅下一个内部流。简而言之就是只有当前流的值都耗尽后才可能执行新的订阅。
+
+返回值
+
+Observable 输出流的上必然输出第一条内部流的值，其它的内部流的值是否会在输出流上取决于上述的规则。
+
+示例
+
+    Rx.Observable.fromEvent(document,'click')
+        .map(event => Rx.Observable.interval(1000).take(5))
+        .exhaust()
+        .subscribe(v => console.log(v));
 
 ## forkJoin
 
@@ -215,7 +313,89 @@ Observable 可以发送所有输入流上的值的Observable。
 
 ## mergeAll
 
+----
+实例方法
+
+将高阶流打平成一阶流，并行发送所有内部流的值。
+
+    -------------------------------------|---->
+        \               \-1-2--3-4--5--6-|->
+         \-a--b--c--d--e--f--g--h--i-|->
+
+            mergeAll
+
+    ------a--b--c--d--e--f-1-2-g-3-j-4-i-5--6-|->
+
+此操作符订阅所有的内部流，并把所有内部流上发射的值传送给输出流。只有当所有的内部流都完成时输出流才会发出完成通知。如果有一个内部流发出错误通知，这个错误会立即被发送给输出流。
+
+参数
+
+| Name       | Type   | Attribute                            | Description              |
+| ---------- | :----: | :----------------------------------: | -----------------------: |
+| concurrent | number | 可选。默认：Number.POSITIVE_INFINITY | 并发订阅内部流的最大数量 |
+
+返回值
+
+Observable 并行输出所有内部流的值的流
+
+示例
+
+    Rx.Observable.fromEvent(document,'click')
+        .map(event => Rx.Observable.intervl(1000))
+        .mergeAll()
+        .subscribe(v => console.log(v));
+
+    Rx.Observable.fromEvent(document, 'click')
+        .map(event => RxObservable.interval(1000).take(10))
+        .mergeAll(2)
+        .subscribe(v => console.log(v));
+
 ## race
+
+----
+实例方法
+
+把最先开始输出值的流作为输出流。
+
+    --------a-------b-----c------|-->
+
+    ---1------3------|-->
+
+                race
+
+    ---1------3------|-->
+
+参数
+
+| Name           | Type           | Attribute | Description      |
+| -------------- | :------------: | :-------: | ---------------: |
+| ...observables | ...observables |           | 参与竞赛的输入流 |
+
+返回值
+
+Observable 第一条发出值的输入流的镜像。
+
+示例
+
+    const first = Rx.Observable.of('first')
+        .delay(100)
+        .map(_ => throw 'error');
+
+    const second = Rx.Observable.of('second').delay(200);
+
+    const third = Rx.Observable.of('third').delay(300);
+
+    Rx.Observable.race(first, second, third)
+        .subscribe(v => console.log(v));
+
+    ----
+
+    Rx.Observable.interval(2000)
+        .race(
+            Rx.Observable.interval(1000),
+            Rx.Observable.fromEvent(document, 'click')
+        )
+        .subscribe(v => console.log(v));
 
 ## startWith
 
@@ -224,11 +404,13 @@ Observable 可以发送所有输入流上的值的Observable。
 
 在发送流上的数据时，先将传入此操作符的参数作为流上的第一个值发送出去。
 
--------a--------b-------c--|-->
+    -------a--------b-------c--|-->
 
-            startWith(s)
+                startWith(s)
 
-s------a--------b-------c--|-->
+    s------a--------b-------c--|-->
+
+参数
 
 | Name      | Type      | Attribute | Description                |
 | --------- | :-------: | :-------: | -------------------------: |
@@ -364,3 +546,32 @@ Observable 将各输入流上对应的值组合成新的值发送给输出流或
         .subscribe(v => console.log(v));
 
 ## zipAll
+
+----
+实例方法
+
+参数
+
+| Name        | Type     | Attribute | Description                                                       |
+| ----------- | :------: | :-------: | ----------------------------------------------------------------: |
+| project     | * |       |      |
+
+返回值
+
+Observable
+
+示例
+
+    const obs1 = Rx.Observable.interval(1000).take(5);
+
+    const obs2 = Rx.Observable.interval(1000).mapTo('a').take(4);
+
+    Rx.Observable.of(obs1,obs2)
+        .zipAll()
+        .subscribe(v => console.log(v));
+
+    ----
+
+    Rx.Observable.of(obs1, obs2)
+        .zipAll((a, b) => a + b)
+        .subscribe(v => console.log(v));
