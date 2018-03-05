@@ -2,6 +2,41 @@
 
 ## debounce
 
+----
+实例方法
+
+只有在由延迟流决定的一段特定时间内，输入流上没有再发出新的值后，输入流发出的值才会被输出流发了。
+
+* <font face="仿宋">_类似于debuounceTime，但它的静默时间由第二个流决定。_</font>
+
+    -----a-------b--c------------d-----|-->
+
+    ---------|-->
+
+                debounce
+
+    ---------a----------------c------------d--|-->
+
+延迟输入流上值的发送，在静默阶段内如果有新的值到来那么前一个静默值会被丢弃。这个操作符会追踪输入流上的最新值，同时通过调用传入的函数来获取一条决定静默时间的流。从输入流上发出的值只有在延迟流发出值或完成通知时才会被输出流发出。如果在延迟流发出值之前有新的值从输入流上发出，那么前一个值就会被丢弃，不会出现在输出流上。
+
+和 debounceTime 一样，这是一个限制频率的操作符，也是一个延迟发射值的操作符，输出流的值始终不会和输入流的值同步发出。
+
+参数
+
+| Name             | Type                                      | Attribute | Description                                               |
+| ---------------- | :---------------------------------------: | :-------: | --------------------------------------------------------: |
+| durationSelector | function(value: T): SubscribableOrPromise |           | 接受输入流上的值，用于计算延迟时间，返回一个流或者promise |
+
+返回值
+
+    Observable 延迟发送输入流的值，同时可以限制发送频率的流。
+
+示例
+
+    Rx.Observable.fromEvent(document, 'click')
+        .debounce(() => Rx.Observable.interval(1000))
+        .subscribe(v => console.log(v));
+
 ## debounceTime
 
 ----
@@ -80,8 +115,6 @@ Observable 将源 Observable 上的值进行区分过的流。
         .distinct(v => v)
         .subscribe(v => console.log(v));
 
-## distinctKey
-
 ## distinctUntilChanged
 
 ----
@@ -154,6 +187,40 @@ Observable 对输入流的值进行过区分后的流。
         .subscribe(x => console.log(x));
 
 ## elementAt
+
+----
+实例方法
+
+只输出输入流上指定位置的值然后立即结束的流。
+
+    ---------a--------b---------c------d------|-->
+
+                elementAt(2);
+
+    ----------------------------c|->
+
+输出流输出输入流上指定索引位置的值或者在索引超出输入流的范围后输出一个默认值。如果超出索引范围，但是又没有提供默认值，此时输出流上会输出一个错误通知。
+
+参数
+
+| Name         | Type   | Attribute | Description     |
+| ------------ | :----: | :-------: | --------------: |
+| index        | number |           | 从0开始的索引值 |
+| defaultValue | T      | 可选      | 默认值          |
+
+返回值
+
+Observable 只输出一个值的流，可能是输入流的正常值，也可能是默认值，也可能是一个错误。
+
+错误
+
+ArgumentOutOfRangeError 如果传入的索引小于0，或者输入流在索引位置上没有值时这个错误会被抛出。
+
+示例
+
+    Rx.Observable.fromEvent(document, 'click')
+        .elementAt(2)
+        .subscribe(v => console.log(v));
 
 ## filter
 
@@ -230,9 +297,103 @@ EmptyError 在结束通知发出前如果没有发出过有效值，将会发送
 
 ## ignoreElements
 
+----
+实例方法
+
+忽略输入流上所有的正常值，只发出其错误通知和完成通知。
+
+    ------a-----b-----c-----d-------|--->
+
+                ignoreElements
+
+    --------------------------------|--->
+
+返回值
+
+Observable 只能发出错误通知或完成通知的流，具体发出哪一个要取决于输入流。
+
+示例
+
+    const source = Rx.Observable.interval(1000)
+        .take(5)
+        .map(v => {
+            if(v < 4) {
+                return v;
+            }else {
+                throw 'too big';
+            }
+        });
+
+    source.ignoreElements().subscribe(v => console.log(v), e => console.error(e), () => console.log('complete'));
+
 ## audit
 
+----
+实例方法
+
+在一段时间内忽略输入流上的值，持续时间由另一条流决定，之后发出输入流上的最近的值。
+
+* <font face="仿宋">_类似于auditTime，只是它的静默时间是由另外一条流决定的。_</font>
+
+    -------a--x-y-------------b---x----------c-x-x-x-----|-->
+
+    -------------|-->
+
+                audit
+
+    -------------y-----------------x----------------x----|-->
+
+这个操作符和throttler类似，只不是它输出的是静默时间过后最近的值，而不是第一个值。audit内部的计时器被禁用后，它会发出输入流上发出的最新的值，在计时器开启时输入流上发出的值都会被忽略，最初的时候计时器是被禁用的。当输入流上的第一个值到达时，传入的函数会被调用，计时器此时开启，此函数会返回一个流，这个流发出值或完成通知后，计时器会停止，然后输入流上发出的最新值将会在输出流上输出。下一个值到达时重复此过程。
+
+参数
+
+| Name             | Type                                      | Attribute | Description                                 |
+| ---------------- | :---------------------------------------: | :-------: | ------------------------------------------: |
+| durationSelector | function(value: T): SubscribableOrPromise |           | 接受输入流的值作为参数，输出一个流或promise |
+
+返回值
+
+Observable 把输入流的值发射频率限制后的流。
+
+示例
+
+    Rx.Observable.fromEvent(document, 'click')
+        .audit(event => Rx.Observable.interval(1000))
+        .subscribe(v => console.log(v));
+
 ## auditTime
+
+----
+实例方法
+
+在一段时间内忽略输入流上的值，之后发出输入流上最新的值。
+
+* <font face="仿宋">_当输入流上发出值是，输出流忽略这个值并在接下来的指定时间内忽略输入流的值，过后发出输入流最新的值。_</font>
+
+    --------a--x--y------b---------x----c-x------|-->
+
+                auditTime(500);
+
+    --------------y----------------x-------------|-->
+
+此操作符和 throttleTime 类似，不同的是它在指定的时间段后发出的是输入流上最新的值而不是第一个值。auditTime内部的计时器被禁用后，它会发出输入流上发出的最新的值，在计时器开启时输入流上发出的值都会被忽略，最初的时候计时器是被禁用的。当输入流上的第一个值到达时，计时器此时开启。在指定的时间过后，计时器会停止，然后输入流上发出的最新值将会在输出流上输出。下一个值到达时重复此过程。可以传入一个可选的调度器来管理计时器。
+
+参数
+
+| Name      | Type      | Attribute           | Description                            |
+| --------- | :-------: | :-----------------: | -------------------------------------: |
+| duration  | number    |                     | 在发出输入流上的最新值时需要等待的时间 |
+| scheduler | Scheduler | 可选；默认值：async | 管理计时器，处理发送频率               |
+
+返回值
+
+Observable 把输入流的值发射频率限制后的流。
+
+示例
+
+    Rx.Observable.fromEvent(document, 'click')
+        .auditTime(1000)
+        .subscribe(x => console.log(x));
 
 ## last
 
@@ -273,9 +434,106 @@ EmptyError 如果在输入流发出结束通知前没有发出过值，或没有
 
 ## sample
 
+----
+实例方法
+
+当另一个流发出值时输出输入流上最新的值。
+
+* <font face="仿宋">_和sampleTime类似，只不过取样的时机取决于另一条流。_</font>
+
+    -------a------b----c---------------------d--------|-->
+
+    ---------x-----------x-----x----------------x--------|->
+
+                sample
+
+    ---------a-----------c----------------------d--------|->
+
+当通知流上发出值或者完成通知时，此操作符都会查看输入流上的最新值，如果这个值和输出流的前一个值不同，则这个值就会被传递给输出流。在订阅输出流时，通知流同时也会被订阅。
+
+参数
+
+| Name     | Type            | Attribute | Description      |
+| -------- | :-------------: | :-------: | ---------------: |
+| notifier | Observable<any> |           | 取样时机的通知流 |
+
+返回值
+
+Observable 发出取样结果的流。
+
+示例
+
+    Rx.Observable.interval(1000)
+        .sample(Rx.Observable.fromEvent(document, 'click'))
+        .subscribe(v => console.log(v));
+
 ## sampleTime
 
+----
+实例方法
+
+每隔一断时间对输入流的值进行取样。
+
+* <font face="仿宋">_周期性的对输入流进行取样。_</font>
+
+    -------a-----b-c---------d--e------------f-g-d-m--------|-->
+
+                sampleTime(700);
+
+    ----------------c----------------e------------------m--|->
+
+此操作符周期性的查看输入流，并将其最新值作为取样结果传递给输出流，如果自上次取样过后输入流没有发出过数据，则不会传递值。取样行为周期性的发生，并且是在输出流被订阅时就开始。
+
+参数
+
+| Name      | Type      | Attribute           | Description  |
+| --------- | :-------: | :-----------------: | -----------: |
+| period    | number    |                     | 取样周期     |
+| scheduler | Scheduler | 可选；默认值：async | 调度取样时间 |
+
+返回值
+
+Observable 发出取样结果的流。
+
+示例
+
+    Rx.Observable.interval(1000)
+        .sampleTime(2000)
+        .subscribe(v => console.log(v));
+
 ## single
+
+----
+实例方法
+
+只输出输入流上唯一一个符合判定条件的值，如果输入流没有符合判定条件的值或者有多个符合条件的值，输出流上将会抛出错误。
+
+    -------a-------b-------c-------|--->
+
+                single
+
+    ----------------X------------------->
+
+参数
+
+| Name      | Type     | Attribute | Description |
+| --------- | :------: | :-------: | ----------: |
+| predicate | Function |           | 判定函数    |
+
+返回值
+
+Observable 输入流上唯一符合判定条件的值组成的流。
+
+错误
+
+EmptyError 没有符合判定函数的唯一值时发出的错误通知。
+
+示例
+
+    Rx.Observable.interval(1000)
+        .take(5)
+        .single(v => v === 4)
+        .subscribe(v => console.log(v));
 
 ## skip
 
@@ -308,9 +566,98 @@ Observable 跳过了一定数量值的流。
 
 ## skipLast
 
+----
+实例方法
+
+跳过输入流上最后n个值。
+
+    ----1---2---3---4---5---6-----|-->
+
+                skipLast(3);
+
+    ----1---2---3--|->
+
+输出流上累积足够的队列保存最初的n个值，当接收到更多值时，将从队列的前面取值并在结果队列产生，这将导致值的发射被延迟。
+
+参数
+
+| Name  | Type   | Attribute | Description         |
+| ----- | :----: | :-------: | ------------------: |
+| count | number |           | 需要跳过的最后n个值 |
+
+返回值
+
+Observable 跳过了输入流上最后n个值的流。
+
+错误
+
+ArgumentOutOfRangeError 当i < 0时，抛出此错误。
+
+示例
+
+        Rx.Observable.range(1,5)
+            .skipLast(3)
+            .subscribe(v => console.log(v));
+
 ## skipUntil
 
+----
+实例方法
+
+在通知流发出值之前，忽略输入流上产生的值。
+
+    --a-----b-----c----d-----e-----f---g----h---|-->
+
+    ---------------------x---------------|-->
+
+                skipUntil
+
+    ------------------------e------f---g----h---|-->
+
+参数
+
+| Name     | Type       | Attribute | Description                                |
+| -------- | :--------: | :-------: | -----------------------------------------: |
+| notifier | Observable |           | 发出通知值使输出流开始镜像输入流上发出的值 |
+
+返回值
+
+Observable 忽略了通知流发出通知之前的所有值的流。
+
+示例
+
+    Rx.Observable.interval(1000)
+        .skipUntil(Rx.Observable.fromEvent(document, 'click'))
+        .subscribe(v => console.log(v));
+
 ## skipWhile
+
+----
+实例方法
+
+输入流上的值在通过判定函数的结果为true时将会被输出流忽略，一旦判定函数的结果变为false，输出流就开始镜像输入流。
+
+    ---2---3----4-----5----6----1-----|-->
+
+                skipWhile(x => x < 4);
+
+    ------------4-----5----6----1-----|-->
+
+参数
+
+| Name      | Type     | Attribute | Description              |
+| --------- | :------: | :-------: | -----------------------: |
+| predicate | Function |           | 检测输入流的值的判定函数 |
+
+返回值
+
+Observable 当判定函数的值变为false时开始镜像输入流的流。
+
+示例
+
+    Rx.Observable.interval(1000)
+        .skipWhile(x => x < 4)
+        .subscribe(v => console.log(v));
 
 ## take
 
@@ -350,6 +697,41 @@ ArgumentOutOfRangeError 在给此操作符传入负数时给观察者发了的�
         .subscribe(v => console.log(v));
 
 ## takeLast
+
+----
+实例方法
+
+只输出输入流最后发出的n个值。
+
+* <font face="仿宋">_储存输入流上最后发出的n个值，在输入流完成后，输出流是发出这些值。_</font>
+
+    -----a----b---------c-------e----f-----g----h----|--->
+
+                takeLast(2);
+
+    -------------------------------------------------gh|-->
+
+输出流上只输出输入流上最后n个值，如果输入流上的值小于n，那么输入流的值将全部被输出。输出流必须在输入流发出完成通知后才能发出值，因为在此之前无法判断输入流上是否还有值发出，所有的值都以同步的方式输出。
+
+参数
+
+| Name  | Type   | Attribute | Description                |
+| ----- | :----: | :-------: | -------------------------: |
+| count | number |           | 从输入流上获取值的最大数量 |
+
+返回值
+
+Observable 只输出输入流上最后n个值的流。
+
+错误
+
+ArgumentOutOfRangeError 当n < 0时，此操作符会抛出此错误。
+
+示例
+
+    Rx.Observable.range(1,100)
+        .takeLast(3)
+        .subscribe(v => console.log(v));
 
 ## takeUntil
 
@@ -410,4 +792,70 @@ Observable 满足判定条件时的输入流镜像，不满足时立即结束。
 
 ## throttle
 
+----
+实例方法
+
+发出输入流上的某一个值，然后在指定时间内忽略输入流上发出的值，这个指定时间由另外一流决定。
+
+* <font face="仿宋">_和throttleTime类似，只不过静默时间是由另一条流决定的。_</font>
+
+    --a--x-y---------b---x-----------c--x-x-x-x--------|-->
+
+    ------|->
+
+                throttle
+
+    --a--------------b---------------c-----------------|-->
+
+当计时器被禁用后在输出流上发出输入流的值，计时器开启时输入上的值都会被忽略。计时器在最初是被禁用的，当输入流的第一个值到达时，它会直接被输出流输出，然后传入的函数被调用，计时器开启，这个函数会返回一个流来决定静默时间。当返回的流产生了值或者发出完成通知时，计时器被禁用。在下一值到达时重复以上过程。
+
+参数
+
+| Name             | Type                                      | Attribute | Description                                                                             |
+| ---------------- | :---------------------------------------: | :-------: | --------------------------------------------------------------------------------------: |
+| durationSelector | function(value: T): SubscribableOrPromise |           | 接受输入流的值作为参数，输出一个流或promise                                             |
+| config           | Object                                    |           | 用来定义 leading 和 trailing 行为的配置对象。 默认为 { leading: true, trailing: false } |
+
+返回值
+
+Observable 对输入流进行了节流包装及频率限制的流。
+
+示例
+
+    Rx.Observable.fromEvent(document, 'click')
+        .throttle(event => Rx.Obsevable.interval(1000))
+        .subscribe(v => console.log(v));
+
 ## throttleTime
+
+----
+实例方法
+
+发出输入流上的某一个值，然后在指定时间内忽略输入流上发出的值。
+
+* <font face="仿宋">_让一个值通过，然后在接下来的指定时间内忽略输入流上的值。_</font>
+
+    --a--x-y---------b---x-----------c--x-x-x-x--------|-->
+
+                throttleTime(500)
+
+    --a--------------b---------------c-----------------|-->
+
+当计时器被禁用后在输出流上发出输入流的值，计时器开启时输入上的值都会被忽略。计时器在最初是被禁用的，当输入流的第一个值到达时，它会直接被输出流输出，然后计时器开启，在经过指定的静默时间后，计时器被禁用。在下一值到达时重复以上过程。可以传入一个可选的Scheduler管理计时器。
+
+参数
+
+| Name      | Type      | Attribute           | Description                            |
+| --------- | :-------: | :-----------------: | -------------------------------------: |
+| duration  | number    |                     | 在发出输入流上的最新值时需要等待的时间 |
+| scheduler | Scheduler | 可选；默认值：async | 管理计时器，处理发送频率               |
+
+返回值
+
+Observable 对输入流进行了节流包装及频率限制的流。
+
+示例
+
+    Rx.Observable.fromEvent(document, 'click')
+        .throttleTime(500)
+        .subscribe(v => console.log(v));
