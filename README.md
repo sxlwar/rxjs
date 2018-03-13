@@ -4,7 +4,7 @@
 
 ----
 
-rxjs是一个使用观察者模式来整合异步操作和事件系统的js库，通过一系列可观测的流（observable）将它们串联起来。Observable是这个库的核心类型，此外还包括诸如Observer，Schedulers，Subjects等类型。还包括一些和数组方法类似或经过演化的操作符，用来协助处理数据。
+rxjs是一个使用观察者模式来整合异步操作和事件系统的js库，通过一系列可观测的流（observable）将它们串联起来。Observable是这个库的核心类型，此外还包括诸如Observer，Schedulers，Subject等类型。还包括一些和数组方法类似或经过演化的操作符，用来协助处理数据。
 
 * <font face="仿宋">_可以把 rxjs 想像成一个可以发射事件的 lodash 库。_</font>
 
@@ -28,6 +28,7 @@ rxjs是一个使用观察者模式来整合异步操作和事件系统的js库�
     var button = document.querySelector('button');
 
     button.addEventListener('click', () => console.log('Clicked'));
+
 使用rxjs的方式实现如下：
 
     var button = document.querySelector('button');
@@ -354,8 +355,8 @@ rxjs的 Observable 也是一种 push 类型的系统，一个 Observable 可以�
 
     "before"
     "Hello"
-    100
     42
+    100
     200
     "after"
     300
@@ -420,19 +421,19 @@ Observable.create(function subscribe(observer) { ... })内部的代码代表了 
 
 Observable 执行后可以产生三种类型的值：
 
-* ’Next‘：发送一个**正常**的值，比如String， Number 或者 Object 等。
-* ‘Error’：发送一个javascript的错误或者抛出异常。
-* ’Complete‘：停止发送值。
+* ’next‘：发送一个**正常**的值，比如String， Number 或者 Object 等。
+* ‘error’：发送一个javascript的错误或者抛出异常。
+* ’complete‘：停止发送值。
 
-Next类型的通知是最重要也是最常用的一种，它代表了将要传递给观察者的数据。Error  和 Complete 类型的通知在整个Observable的执行过程中只可以发生一次，并且它们是互斥的，只有一个可以发生。
+next类型的通知是最重要也是最常用的一种，它代表了将要传递给观察者的数据。error  和 complete 类型的通知在整个Observable的执行过程中只可以发生一次，并且它们是互斥的，只有一个可以发生。
 
 以正则表达式来表述三者之间的关系的话，应该是：
 
     next*(error|complete)?
 
-* <font face="仿宋">_在Observable执行的过程中，可以发生0个或无限多个Next类型的通知，但是当 Error 或 Complete 类型的通知中有一个发生后，Observable将不会再传递任何数据。_</font>
+* <font face="仿宋">_在Observable执行的过程中，可以发生0个或无限多个next类型的通知，但是当 error 或 complete 类型的通知中有一个发生后，Observable将不会再传递任何数据。_</font>
 
-下面的代码展示了一个可以产生三个 Next 类型通知的 Observable，最后发送一个 Complete 通知：
+下面的代码展示了一个可以产生三个 next 类型通知的 Observable，最后发送一个 complete 通知：
 
     var observable = Rx.Observable.create(function subscribe(observer) {
         observer.next(1);
@@ -487,7 +488,7 @@ Subscription 代表了正在执行的上下文，它拥有一个可以取消 Obs
 
 我们可以给之前的例子添加上它的 unsubscribe 方法：
 
-    var observable  Rx.Observable.create(function subscribe(observer) {
+    var observable = Rx.Observable.create(function subscribe(observer) {
         var intervalID = setInterval(() => {
             observer.next('hi');
         },1000);
